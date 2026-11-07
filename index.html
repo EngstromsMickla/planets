@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <meta name="theme-color" content="#f6f4ef">
-<title>Planets v0.3</title>
+<title>Planets v0.5</title>
 <style>
 :root{--paper:#f6f4ef;--ink:#2a2723;--green:#2f6b5e;--ochre:#a57a12;--rust:#b8532c}
 html,body{margin:0;height:100%;background:var(--paper);overflow:hidden;color:var(--ink);
@@ -38,6 +38,12 @@ footer img{width:16px;height:16px}
 #gauge .bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ochre)}
 #gauge .bar em{position:absolute;right:-1px;top:-3px;bottom:-3px;width:1px;background:var(--rust)}
 #gauge.free .bar i{background:var(--green)}
+#fuel{margin-top:4px;font-size:11px}
+#fuel b{font-size:13px}
+#fuel .bar{position:relative;width:150px;height:6px;margin:3px 0 0 auto;border:1px solid rgba(42,39,35,.5)}
+#fuel .bar i{position:absolute;left:0;top:0;bottom:0;width:100%;background:var(--green)}
+#fuel.low .bar i{background:var(--rust)}
+#fuel.low span{color:var(--rust)}
 #gauge.free span{color:var(--green)}
 #btns button.off{text-decoration:line-through;opacity:.5}
 .hidden{display:none!important}
@@ -46,15 +52,17 @@ footer img{width:16px;height:16px}
 <body>
 <canvas id="c"></canvas>
 <div id="title" class="serif"><h1>Planets</h1><div>a gravity atlas</div></div>
-<div id="stats">Crashes <b id="sCr">0</b> · Escapes <b id="sEx">0</b><br>Wreckage in space <b id="sDe">0</b>
- <div id="gauge"><span>Speed vs escape velocity <b id="sEs">0 %</b></span><div class="bar"><i id="gaugeFill"></i><em></em></div></div></div>
+<div id="stats">Crashes <b id="sCr">0</b> · Slingshots <b id="sSl">0</b> · Escapes <b id="sEx">0</b><br>Wreckage in space <b id="sDe">0</b>
+ <div id="gauge"><span>Speed vs escape velocity <b id="sEs">0 %</b></span><div class="bar"><i id="gaugeFill"></i><em></em></div></div>
+ <div id="fuel" class="g2"><span>Fuel <b id="sFu">100 %</b></span><div class="bar"><i id="fuelFill"></i></div></div></div>
 <div id="btns"><button id="bSound" aria-label="Sound off">♪</button><button id="bHelp" aria-label="Help">?</button><button id="bReset" aria-label="New map">↺</button></div>
-<footer><img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABfWlDQ1BJQ0MgUHJvZmlsZQAAeJx9kT1IQlEYhp97TYxQGnKIaLiDNWVDRTSGRRIkhBqoNXR/1ATvVe5VWhqDVqGhn6W/oaW51obWIAj6gWhuaCpqibhxVFAi+5bz8J7v/Tjfe0A+LOqm0zUNplWx49GIkkpnFN8LfgYJ4GVU1Z1yLDGXpGN93iGJ8zYsZnXu+7MCRtbRQVKAab1sV0BaBSbXK2XBu0BQX1MNkM6AETuVzoD0IHStwa+C83WWxcygnYzPgBwElHwba22sr9kmyBNAyDAtA+RUgw3BG4LNYlVvvlNs6M9aSwmhA4NEmSfGIgoaVQoUqRCmgIWCQ5wokQ7+gbp/kSoaRQroKMxSwkSt+xF/8DtbJzc+1pjkj4D32XXfh8C3Dd811/06ct3vY/A8waXV8pcOYeoDPLWWFjqA3k04v2pp2g5cbEH/Y1m11brkAeRcDt5OIZCGvhvoWW7k1rzn5B6SG7BwDXv7MJyH3pUOe3e35/ZvTzO/H8HKcsZTMA8CAAAINUlEQVR42u1bW2/aTBOeXSASIQbbHHpTCZAS9a5qlOtKoepFf3OkkEhVr6r0D5TE0FSq9MUHIIFWxex8Nx1rvfgEmLy86ruSFcX4sDvzzDOzM2MGAAh/8eDwl4+/XgDFfZ8gYyz0PyL+PQJgjK0sOOrcVu/YdxLUdT1AASLCeDzOXQi4bwdjDDnn2G630bIsdF0XXddFy7Kw3W4H1+T0vv1bPADg0dERWpaF6hgOh9hut5FznpcQ9k8AjDHsdDr4+PiIQghcLpfBX0REy7Lw6OgoLyTsbhHysY72DcNAy7KChdMQQqAQAh8fH7HT6az17GcRQNKEskyUrtE0DafTabBoeRASLMtCwzC2RkFxFy5LZu512ZsxBvV6HXzfj4/eOE+95lm9AGlA13XsdDoBc9u2vcLenPPUZ1iWFcBdHXTOdV3sdDp5kOF2i6cFkcvyPA+jBrF3nBBoEaZpxsJf5YKcyHB7zbfbbRwOhysTpIPYO0kIsv07jpMqAETMiwy3D1Zo8SpryyNKCPKkZfdHKIp7Vs5kmE+wQgtMGqoQyH6z2L+MKFk40+kUNU3bWAAbb4c559BoNKDRaAAiruza4u4RQkC73Ybr62s4PDwM3UseIGoHyBgLDtmT+L4fec/OvICq/STYJxGYbL/EB4ZhrNg//fU8D13XDZGsTIa6rm+EAr6pzyftc8432t8fHh7C1dUV6LoOQojI/T9pfjQawdnZGRwfH8PZ2RmMRiNAxOD3Z0NAWqi6DgpU+6Xnuq4bIlSZNOmQiRIR0XGcjYlwIwSQ3a2r/bjnRGmPcw6TyQTOz89hNBoB5xw458AYA8dxQjywjfb5JvBfNwwluKphs67rcHV1BaZpBotW73McJ7iejlKp9PxJUZpErVYLbDcL+8sMnibMKPYvlUor+4c8s0EbIyAr7BhjMB6PwfO8yInLZrBYLEK/RS1+W8jnIgB1onGaF0LAt2/f4PXr1/DmzRuYTqchVJAZ9Pt90DQNNE0LzIDgHyUA9f3bIGJtASwWi8ywn8/n0Ov14P7+HsbjMSyXy0iBapoGjUYD+v0+VKtVAACYTCbQ6/VgMpmEgh/aCstz2IYTiruCvxACbNsG27aBMQYHBwexEyWhys+WESBzCMUPtVotiB/ikJIbAlQCrNVqsQSoav/p6QkQEXzfB8dxQkGPatNRHKA+mwIwxhhwzoP3qEjZiQlkRYCsfSFE4NN7vR7M5/PYicZVgei8vIcQQoTes1MEJBFQkvblxSLixpMVQoCu63B9fQ3tdjsQStR7nsULrKP9KMGocEVETHuu7/tgmmYIFep7ngUBcVJO0r4snCjCKhaLTI0s1cixXq/DcrkMFDAajeD8/Hwr7W8kgCSXI8M8TisR9+NyuZwahoGyByiVSkFMYJpmKPqcz+fBHkENs6MQGxeJri2AuOCEtD+ZTODdu3eJWpHO4Z8F2rquv728vLQbjQb82dGF3kPwp4XI7jVt4fIeYqvtsJyzoy2rmrRwHAfL5XLktlTeSv9JetA++n+I+PrPX1wul4K2wPI7bdtGIQTe3d2tVRus1WpoGAbquh53/Xq5AE3TcDKZRObnPM/DbrcbmaWVBaCkvQUiTnzfF3Kml+7TdR1vb29RCIGO4wS/JS2+UCigYRh4fHyMo9EIXdfFwWAQmTVauzJULBbBdV2oVqshRqZAqd/vw+npaWwliMyoUqkQhBkAVClfKMNbzfjI2+OkgK1cLsPnz5+hWCyCrutQrVahUCjE3pe5lkeapVS4nBGSszymacaaQVTl1/d9IecJOeehPOHDwwMiItq2jfV6PXF+nHM8OTnB79+/Y7fbxVarhb9+/cLZbBaJAL6Ou6NzsgtSr10sFqnBkqxlzjkUCgWW5Ndlzf3+/TsxPimXy3B5eQmapsF8PodSqQQ/fvxIDMAiJVmr1RJRINcEZD7wPC+xWpPW/aHWCmQEEAdEESAhhtBFaPzy5Quenp6iaZpxdclV2DebTby5ucFmsxkLZbkqRKYgp6mzJCl1XUfDMAKWzkKaVA+kOchpdXk+vu/jYDDADx8+4MXFRVLafPWlrVYLh8MhtlqtRHuTJS7XALNUa5KeGVUtpmerXoIOtT7peR6+f/8eLy4u8NWrV1goFNLdoCyAr1+/pgpANQWaZNbSdVoXSRxpDodD7HQ6AXqoJC/PwXEcvLm5wW63m702KAtgMBjgixcvUrWomgKZQx6l66gapNwfYNt20IOgluK73W5gwhsLIM6dpZmCDNVtGxiiqtBRw3VddBwn1IyRUfjxAjg5OckMY9UUqHRNhLWtEOQmDMdxAu3bto13d3chk0jrV0oVgGEY+PT0hPf391ipVDKhQDUFlbC27eaSSZEWmuZB1u4PoBtrtRre39/jbDbLDGPVFAgJ6sYmDyGkEepWDRIy885ms7VQQKYwHA5DwdE25essPYi5NknRwyqVygoK4jq85HsLhQK+fPky1OYynU5z6enbxcHjUls/f/6Et2/fAgDAx48foVwuBxnepASEWvxgjMXG77DPX4wIIeDh4QFc1wXTNKHZbAbNDHKaSc68UPvLp0+fgsIFIsLBwQHs80hk9m63G7Sn3N7erjQryHF9p9MJfLXa3JwXB+zgWK9t3bKswOfW6/VQKEp2T3GA3BGWU2Pz8wkgausqR122bQcBiRqKRnWH7uni03OCahQWt1hZOFn7g/fhyPTNkFzLp3o+lbHVnh6q/AAAeJ6X+/c9eY/MH00ltcOrbfG7+sLrHxWAnHdLq8Ts6hu/f1wAWQqk/4ZF/6u+G/zv2+H/BLDb8X+1MJUN/YRYygAAAABJRU5ErkJggg=="><span>© Engströms Mickla AB 2026 · Planets v0.3</span></footer>
+<footer><img alt="" src="data:image/png;base64,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"><span>© Engströms Mickla AB 2026 · Planets v0.5</span></footer>
 <div id="card"><div class="in">
  <h2 class="serif">Planets</h2>
  <p class="sub serif">Fly with gravity. Or crash.</p>
- <p>Hold your finger where you want to go. The rocket turns that way and fires. Let go to glide.</p>
- <p>The dotted line shows where you are heading. The contour lines show gravity: the closer together, the steeper.</p>
+ <p>Hold your finger where you want to go, and the autopilot flies you there. Let go, and gravity takes over.</p>
+ <p>The autopilot burns fuel. Gliding refills the tank slowly; skimming close past a planet refills it fast. Let go before a close pass, and the planet slings you onwards with extra speed.</p>
+ <p>The dotted line shows where you are heading. A dashed circle shows where a planet will be when you pass it. The contour lines show gravity: the closer together, the steeper.</p>
  <p>Crash as much as you like. The wreckage stays in space, and you can fly into it.</p>
  <p>Want to leave the system? Fill the gauge top right past 100 % and cross the red system boundary. Pass close behind a planet to borrow some of its speed.</p>
  <p class="key">Keyboard: up arrow for the engine, left and right to turn. Sound on and off with ♪.</p>
@@ -139,6 +147,18 @@ const Sound = (() => {
     tone(t + 0.35, 2.2, "triangle", 392, 352, 0.06, bus, 0.1);
     setTimeout(() => { try { bus.disconnect(); out.disconnect(); d1.disconnect(); d2.disconnect(); damp.disconnect(); fb1.disconnect(); fb2.disconnect(); hollow.disconnect(); } catch (e) {} }, 7000);
   }
+  // slangbella: ett stigande svep, högre ju mer fart man vann
+  function slingshot(gain) {
+    if (!ac || !on) return; const t = T() + 0.01, top = Math.min(2200, 500 + gain * 25);
+    noise(t, 0.6, "bandpass", 250, top * 1.5, 3, 0.28, master, 0.15);
+    tone(t + 0.05, 0.5, "sine", 330, top, 0.12, master, 0.05);
+    tone(t + 0.3, 0.35, "triangle", top, top * 1.01, 0.06, master, 0.02);
+  }
+  // tom tank: ett par torra hostningar
+  function empty() {
+    if (!ac || !on) return; const t = T() + 0.01;
+    for (let i = 0; i < 3; i++) { noise(t + i * 0.16, 0.08, "bandpass", 700, 300, 2, 0.35); tone(t + i * 0.16, 0.07, "square", 90, 60, 0.05); }
+  }
   function spawn() { if (!ac || !on) return; const t = T() + 0.01; tone(t, 0.25, "sine", 660, 990, 0.08); tone(t + 0.08, 0.3, "sine", 990, 1320, 0.05); }
   function rcs() {
     if (!ac || !on) return; const t = T(); if (t - lastRcs < 0.09) return; lastRcs = t;
@@ -151,7 +171,7 @@ const Sound = (() => {
     thr.lp.frequency.setTargetAtTime(350 + k * 900 + Math.random() * 120, t, 0.05);
   }
   function toggle() { on = !on; try { localStorage.setItem("planets-sound", on ? "on" : "off"); } catch (e) {} if (master) master.gain.setTargetAtTime(on ? 0.8 : 0, T(), 0.02); return on; }
-  return { init, crash, escape, spawn, rcs, engine, toggle, get on() { return on; } };
+  return { init, crash, escape, slingshot, empty, spawn, rcs, engine, toggle, get on() { return on; } };
 })();
 "use strict";
 // ---------- konstanter ----------
@@ -159,8 +179,14 @@ const INK = "#2a2723", PAPER = "#f6f4ef", GREEN = "#2f6b5e", OCHRE = "#a57a12", 
 const DT = 1 / 120;
 const FIT = 372;                 // världsradie som ska rymmas på skärmen
 const GM_SUN = 8e5;
-const THRUST = 32;               // motorns acceleration
+const THRUST = 50;               // motorns acceleration
 const SPAWN_R = 172;
+const AUTO_MAX = 140;            // autopilotens största acceleration
+const FUEL_USE = 16;             // procent per sekund vid full autopilot
+const FUEL_REGEN = 3;            // procent per sekund när man glider
+const FUEL_SKIM = 35;            // procent per sekund när man snuddar vid en planet
+const VMAX = 160;                // högsta fart som fingret ber om
+const TIME_SCALE = 0.8;          // lite lugnare tempo
 const LOST_R = 1100;
 const MAX_DEBRIS = 500, MAX_STAMPS = 400;
 
@@ -186,12 +212,16 @@ function planetAt(p, t, out) {
   return out;
 }
 // gravitation i en punkt, givet planetlägen i arrayen pos
+// Nära en planet drar den extra hårt, så att en nära passage böjer banan mer (bättre slangbella).
+const NEAR_BOOST = 1.3, NEAR_REACH = 2.5;
+function nearBoost(d, r) { const k = 1 - (d - r) / (NEAR_REACH * r); return k > 0 ? 1 + NEAR_BOOST * Math.min(1, k) : 1; }
 function gravity(x, y, pos, out) {
   let ax = 0, ay = 0;
   for (let i = 0; i < 4; i++) {
     const b = pos[i], dx = b.x - x, dy = b.y - y;
     const d2 = dx * dx + dy * dy + 1, d = Math.sqrt(d2);
-    const f = bodies[i].gm / (d2 * d);
+    let f = bodies[i].gm / (d2 * d);
+    if (i > 0) f *= nearBoost(d, bodies[i].r);
     ax += dx * f; ay += dy * f;
   }
   out.x = ax; out.y = ay; return out;
@@ -212,7 +242,7 @@ function updateBodies(t) { cur[0].x = 0; cur[0].y = 0; cur[0].vx = 0; cur[0].vy 
 const rocket = { x: 0, y: 0, vx: 0, vy: 0, ang: 0, angv: 0, alive: false, thrust: 0, born: 0 };
 let respawnAt = 0;
 let debris = [], stamps = [], puffs = [], labels = [];
-let crashes = 0, escapes = 0;
+let crashes = 0, escapes = 0, lastHit = -2, slingshots = 0;
 let predEnd = { x: 0, y: 0 };
 let started = false;
 
@@ -358,7 +388,8 @@ function computeField() {
       let u = 0;
       for (let b = 0; b < 4; b++) {
         const B = cur[b], dx = wx - B.x, dy = wy - B.y, s = bodies[b].r * SOFT;
-        u += bodies[b].gm / Math.sqrt(dx * dx + dy * dy + s * s);
+        const dd = Math.sqrt(dx * dx + dy * dy + s * s);
+        u += bodies[b].gm / dd * (b > 0 ? nearBoost(dd, bodies[b].r) : 1);
       }
       gf[j * nx + i] = (Math.log(u) - F0) / FSTEP;   // i nivåenheter
     }
@@ -405,7 +436,7 @@ function spawn() {
   rocket.x = SPAWN_R * Math.cos(best); rocket.y = SPAWN_R * Math.sin(best);
   rocket.vx = -Math.sin(best) * v; rocket.vy = Math.cos(best) * v;
   rocket.ang = Math.atan2(rocket.vy, rocket.vx); rocket.angv = 0;
-  rocket.alive = true; rocket.born = simT; rocket.thrust = 0;
+  rocket.alive = true; rocket.born = simT; rocket.thrust = 0; rocket.fuel = 100; rocket.near = [null, null, null]; rocket.emptyWarned = false;
   Sound.spawn();
   for (let i = 0; i < 14; i++) puffs.push({ x: rocket.x, y: rocket.y, vx: rand(-12, 12), vy: rand(-12, 12), life: 0, max: rand(0.4, 0.9), kind: "ring" });
 }
@@ -413,28 +444,96 @@ function spawn() {
 const acc = { x: 0, y: 0 };
 function controlRocket(dt) {
   const k = input.keys;
-  let thrust = 0, rcs = 0;
+  let thrust = 0, rcs = 0, autoThrust = false;
   if (k.left || k.right || k.up) {
     const target = (k.right ? 4.2 : 0) - (k.left ? 4.2 : 0);
     rocket.angv += (target - rocket.angv) * Math.min(1, dt * 10);
     rcs = Math.abs(target) > 0 ? Math.sign(target) : 0;
     thrust = k.up ? 1 : 0;
+  } else if (input.active && rocket.fuel <= 0) {
+    // tom tank: autopiloten går inte, raketen glider
+    if (!rocket.emptyWarned) { rocket.emptyWarned = true; labels.push({ x: rocket.x, y: rocket.y, text: "Out of fuel", t0: performance.now() }); Sound.empty(); }
+    rocket.angv -= rocket.angv * Math.min(1, dt * 6);
   } else if (input.active) {
     const rx = toSX(rocket.x), ry = toSY(rocket.y);
     const dx = input.sx - rx, dy = input.sy - ry;
     const dist = Math.hypot(dx, dy);
-    const target = Math.atan2(dy, dx), err = wrap(target - rocket.ang);
-    rocket.angv += (60 * err - 14 * rocket.angv) * dt;
-    rcs = Math.abs(err) > 0.08 ? Math.sign(err) : 0;
-    if (dist > 22) thrust = Math.max(0, 1 - Math.abs(err) / 0.55) * Math.min(1, (dist - 22) / 40 + 0.35);
+    // Fingret anger vart raketen ska åka: önskad hastighet mot fingret,
+    // och motorn tar bort skillnaden mot nuvarande hastighet (även sidledsfarten).
+    // Siktstöd: ligger fingret på en planet jagar raketen dit planeten kommer att vara.
+    let tvx = 0, tvy = 0, twx = (input.sx - vcx) / scale + cam.x, twy = (input.sy - vcy) / scale + cam.y, onPlanet = false;
+    for (let i = 0; i < 3; i++) {
+      const P = cur[i + 1], px = toSX(P.x), py = toSY(P.y);
+      if (Math.hypot(input.sx - px, input.sy - py) < Math.max(planets[i].r * scale + 28, 36)) {
+        const lead = Math.min(1.5, Math.hypot(P.x - rocket.x, P.y - rocket.y) / 120);
+        tvx = P.vx; tvy = P.vy; twx = P.x + P.vx * lead; twy = P.y + P.vy * lead; onPlanet = true; break;
+      }
+    }
+    let ddx = twx - rocket.x, ddy = twy - rocket.y; const dd = Math.hypot(ddx, ddy) || 1;
+    let ux = ddx / dd, uy = ddy / dd;
+    // Väj för solen om vägen dit går för nära den.
+    const along = -(rocket.x * ux + rocket.y * uy);
+    if (along > 0 && along < dd) {
+      const cxp = rocket.x + ux * along, cyp = rocket.y + uy * along, miss = Math.hypot(cxp, cyp), safe = sun.r + 70;
+      if (miss < safe) {
+        // Gå runt solen längs en tangent till en säker cirkel, på den sida där målet ligger.
+        const rr = Math.hypot(rocket.x, rocket.y) || 1, dsx = -rocket.x / rr, dsy = -rocket.y / rr;
+        let cr = dsx * uy - dsy * ux;
+        if (Math.abs(cr) < 0.05) cr = dsx * rocket.vy - dsy * rocket.vx;
+        const side = cr >= 0 ? 1 : -1;
+        const off = rr > safe ? Math.asin(safe / rr) + 0.15 : Math.PI / 2 + 0.3;
+        const ang = Math.atan2(dsy, dsx) + side * off;
+        ux = Math.cos(ang); uy = Math.sin(ang);
+      }
+    }
+    if (dist > 10) {
+      // Autopiloten: önskad hastighet mot målet, och motorn plus styrraketerna tar bort både
+      // skillnaden i fart och gravitationen, upp till AUTO_MAX. Nära solen räcker det inte.
+      const sp = Math.min(VMAX, (onPlanet ? 50 : 40) + dd * 0.6);
+      const vdx = tvx + ux * sp, vdy = tvy + uy * sp;
+      gravity(rocket.x, rocket.y, cur, acc);
+      let ax = (vdx - rocket.vx) / 0.35 - acc.x, ay = (vdy - rocket.vy) / 0.35 - acc.y;
+      const am = Math.hypot(ax, ay);
+      if (am > AUTO_MAX) { ax *= AUTO_MAX / am; ay *= AUTO_MAX / am; }
+      rocket.vx += ax * dt; rocket.vy += ay * dt;
+      thrust = Math.min(1, Math.hypot(ax, ay) / AUTO_MAX * 1.6);
+      autoThrust = true;
+      // nosen pekar dit raketen ska
+      const target = Math.atan2(vdy, vdx), err = wrap(target - rocket.ang);
+      rocket.angv += (90 * err - 17 * rocket.angv) * dt;
+      const off = wrap(Math.atan2(ay, ax) - rocket.ang);
+      rcs = Math.abs(off) > 0.5 && thrust > 0.1 ? Math.sign(off) : (Math.abs(err) > 0.1 ? Math.sign(err) : 0);
+    } else rocket.angv -= rocket.angv * Math.min(1, dt * 6);
   } else {
     rocket.angv -= rocket.angv * Math.min(1, dt * 6);   // självstabiliserande
   }
   rocket.ang += rocket.angv * dt;
   rocket.thrust = thrust;
+  // bränsle: autopilot och motor drar, glid och planetnära passager fyller på
+  if (thrust > 0 && (autoThrust || k.up)) rocket.fuel = Math.max(0, rocket.fuel - FUEL_USE * thrust * dt);
+  else rocket.fuel = Math.min(100, rocket.fuel + FUEL_REGEN * dt);
+  if (rocket.fuel > 15) rocket.emptyWarned = false;
+  for (let i = 0; i < 3; i++) {
+    const P = cur[i + 1], d = Math.hypot(P.x - rocket.x, P.y - rocket.y);
+    if (d < planets[i].r + 28) rocket.fuel = Math.min(100, rocket.fuel + FUEL_SKIM * dt);
+    // slangbella: jämför farten (mot solen) före och efter en passage nära planeten
+    const zone = planets[i].r * 4.5, v = Math.hypot(rocket.vx, rocket.vy);
+    if (d < zone && rocket.near[i] === null) rocket.near[i] = { v, held: false };
+    if (rocket.near[i] && input.active) rocket.near[i].held = true;
+    if (d > zone && rocket.near[i] !== null) {
+      const gain = v - rocket.near[i].v;
+      if (gain > 12 && !rocket.near[i].held) {
+        labels.push({ x: rocket.x, y: rocket.y, text: "Slingshot +" + Math.round(gain), t0: performance.now(), color: GREEN });
+        slingshots++; Sound.slingshot(gain);
+      }
+      rocket.near[i] = null;
+    }
+  }
   if (thrust > 0) {
-    rocket.vx += Math.cos(rocket.ang) * THRUST * thrust * dt;
-    rocket.vy += Math.sin(rocket.ang) * THRUST * thrust * dt;
+    if (!autoThrust) {
+      rocket.vx += Math.cos(rocket.ang) * THRUST * thrust * dt;
+      rocket.vy += Math.sin(rocket.ang) * THRUST * thrust * dt;
+    }
     if (Math.random() < thrust * 0.9) {
       const bx = rocket.x - Math.cos(rocket.ang) * 6 / scale, by = rocket.y - Math.sin(rocket.ang) * 6 / scale;
       puffs.push({ x: bx, y: by, vx: rocket.vx * 0.6 - Math.cos(rocket.ang + rand(-0.3, 0.3)) * 40, vy: rocket.vy * 0.6 - Math.sin(rocket.ang + rand(-0.3, 0.3)) * 40, life: 0, max: rand(0.3, 0.7), kind: "smoke" });
@@ -451,6 +550,7 @@ function hitRadius() { return 4; }
 
 // ---------- krasch ----------
 function crash(bodyIdx, hitDebrisIdx) {
+  lastHit = bodyIdx;
   const r = rocket;
   let bvx = 0, bvy = 0, nx = 0, ny = 0, label;
   if (bodyIdx >= 0) { bvx = cur[bodyIdx].vx; bvy = cur[bodyIdx].vy; }
@@ -601,12 +701,14 @@ function drawRocket() {
 const ptmp = bodies.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 }));
 function drawPrediction() {
   let x = rocket.x, y = rocket.y, vx = rocket.vx, vy = rocket.vy, t = simT;
-  const h = 1 / 60, steps = 120, a = { x: 0, y: 0 };
+  const h = 1 / 60, steps = 210, a = { x: 0, y: 0 };
+  const near = planets.map(() => ({ d: 1e9, x: 0, y: 0 }));
   ptmp[0].x = 0; ptmp[0].y = 0;
   ctx.fillStyle = INK;
   for (let s = 1; s <= steps; s++) {
     t += h; for (let i = 0; i < 3; i++) planetAt(planets[i], t, ptmp[i + 1]);
     gravity(x, y, ptmp, a); vx += a.x * h; vy += a.y * h; x += vx * h; y += vy * h;
+    for (let i = 0; i < 3; i++) { const P = ptmp[i + 1], dd = Math.hypot(P.x - x, P.y - y) - planets[i].r; if (dd < near[i].d) { near[i].d = dd; near[i].x = P.x; near[i].y = P.y; } }
     if (hitBody(x, y, ptmp, 1) >= 0) {
       const sx = toSX(x), sy = toSY(y); ctx.strokeStyle = RUST; ctx.lineWidth = 1.6;
       ctx.beginPath(); ctx.moveTo(sx - 4, sy - 4); ctx.lineTo(sx + 4, sy + 4); ctx.moveTo(sx + 4, sy - 4); ctx.lineTo(sx - 4, sy + 4); ctx.stroke();
@@ -616,6 +718,17 @@ function drawPrediction() {
   }
   ctx.globalAlpha = 1;
   predEnd.x = x; predEnd.y = y;
+  // spökplanet: var planeten är när banan passerar närmast
+  for (let i = 0; i < 3; i++) {
+    const n = near[i]; if (n.d > 45) continue;
+    const p = planets[i], gx = toSX(n.x), gy = toSY(n.y), gr = p.r * scale;
+    if (Math.hypot(n.x - p.x, n.y - p.y) < p.r * 0.6) continue;
+    ctx.save(); ctx.setLineDash([3, 3]); ctx.lineWidth = 1.1;
+    ctx.strokeStyle = n.d < 1 ? RUST : GREEN; ctx.globalAlpha = 0.75;
+    ctx.beginPath(); ctx.arc(gx, gy, gr, 0, 6.283); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 0.35; ctx.beginPath(); ctx.moveTo(toSX(p.x), toSY(p.y)); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawEdgeArrow() {
@@ -721,7 +834,7 @@ document.addEventListener("gesturestart", e => e.preventDefault());
 const card = document.getElementById("card");
 document.getElementById("bGo").onclick = () => { Sound.init(); card.classList.add("hidden"); if (!started) { started = true; spawn(); } };
 document.getElementById("bHelp").onclick = () => card.classList.remove("hidden");
-document.getElementById("bReset").onclick = () => { debris = []; stamps = []; puffs = []; labels = []; crashes = 0; escapes = 0; if (started) spawn(); };
+document.getElementById("bReset").onclick = () => { debris = []; stamps = []; puffs = []; labels = []; crashes = 0; escapes = 0; slingshots = 0; if (started) spawn(); };
 
 const bSound = document.getElementById("bSound");
 const showSound = () => { bSound.classList.toggle("off", !Sound.on); bSound.setAttribute("aria-label", Sound.on ? "Sound off" : "Sound on"); };
@@ -730,10 +843,11 @@ bSound.onclick = () => { Sound.init(); Sound.toggle(); showSound(); }; showSound
 // ---------- huvudloop ----------
 const sCr = document.getElementById("sCr"), sDe = document.getElementById("sDe"), sEx = document.getElementById("sEx"), sEs = document.getElementById("sEs");
 const gauge = document.getElementById("gauge"), gaugeFill = document.getElementById("gaugeFill");
+const sFu = document.getElementById("sFu"), fuelFill = document.getElementById("fuelFill"), fuelBox = document.getElementById("fuel"), sSl = document.getElementById("sSl");
 let last = performance.now(), accT = 0, frameN = 0;
 function frame(now) {
   const d = Math.min(0.1, (now - last) / 1000); last = now;
-  if (!document.hidden) { accT += d; let n = 0; while (accT >= DT && n < 16) { step(DT); accT -= DT; n++; } if (n >= 16) accT = 0; }
+  if (!document.hidden) { accT += d * TIME_SCALE; let n = 0; while (accT >= DT && n < 16) { step(DT); accT -= DT; n++; } if (n >= 16) accT = 0; }
   updateCamera(d);
   draw();
   Sound.engine(rocket.thrust, rocket.alive);
@@ -742,6 +856,8 @@ function frame(now) {
     if (rocket.alive) {
       const o = orbitInfo(), pc = Math.round(100 * o.v / o.vesc);
       sEs.textContent = pc + " %"; gaugeFill.style.width = Math.min(100, pc) + "%";
+      const f = Math.round(rocket.fuel); sFu.textContent = f + " %"; fuelFill.style.width = f + "%";
+      fuelBox.classList.toggle("low", f < 20); sSl.textContent = slingshots;
       gauge.classList.toggle("free", pc >= 100);
     }
   }
